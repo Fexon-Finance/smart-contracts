@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "https://github.com/pancakeswap/pancake-smart-contracts/blob/master/projects/exchange-protocol/contracts/interfaces/IPancakeRouter02.sol";
-import "https://github.com/pancakeswap/pancake-smart-contracts/blob/master/projects/exchange-protocol/contracts/interfaces/IPancakeFactory.sol";
-import "https://github.com/pancakeswap/pancake-smart-contracts/blob/master/projects/exchange-protocol/contracts/interfaces/IPancakePair.sol";
 import "./interfaces/IFexonTradeAlgoritm.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakeRouter02.sol";
+import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakeFactory.sol";
+import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakePair.sol";
+import "../dependencies/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "../dependencies/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract FexonCore is ERC20, Ownable {
     IPancakeRouter02 private _pancakeRouter;
