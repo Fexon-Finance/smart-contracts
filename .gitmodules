@@ -1,0 +1,6 @@
+[submodule "dependencies/pancake-smart-contracts"]
+	path = dependencies/pancake-smart-contracts
+	url = git@github.com:pancakeswap/pancake-smart-contracts.git
+[submodule "dependencies/openzeppelin-contracts"]
+	path = dependencies/openzeppelin-contracts
+	url = git@github.com:OpenZeppelin/openzeppelin-contracts.git
