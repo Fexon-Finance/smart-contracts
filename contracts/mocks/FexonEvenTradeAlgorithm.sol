@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "./structures/Portfolio.sol";
-import "./interfaces/IFexonTradeAlgoritm.sol";
+import "../structures/Portfolio.sol";
+import "../interfaces/IFexonTradeAlgoritm.sol";
 
 contract FexonEvenTradeAlgorithm is IFexonTradeAlgorithm {
     constructor() {}
