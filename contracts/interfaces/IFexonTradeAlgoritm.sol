@@ -5,5 +5,7 @@ import "../structures/TradeData.sol";
 import "../structures/Portfolio.sol";
 
 interface IFexonTradeAlgorithm {
-    function getRatios(Portfolio calldata portfolio) external returns(TradeData[] memory);
+    function getRatios(Portfolio calldata portfolio)
+        external
+        returns (TradeData[] memory);
 }

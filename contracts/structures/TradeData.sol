@@ -3,5 +3,5 @@ pragma solidity ^0.8.0;
 
 struct TradeData {
     address coin;
-    uint amount;
+    uint256 amount;
 }

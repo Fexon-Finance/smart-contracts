@@ -8,8 +8,9 @@ import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contr
 import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakePair.sol";
 import "../dependencies/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "../dependencies/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../dependencies/chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
-contract FexonCore is ERC20, Ownable {
+contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     IPancakeRouter02 private _pancakeRouter;
     IFexonTradeAlgorithm private _fexonTradeAlgorithm;
     address[] _coins;
@@ -21,8 +22,7 @@ contract FexonCore is ERC20, Ownable {
         address[] memory coins,
         string memory tokenName,
         string memory tokenSymbol
-    ) 
-    ERC20(tokenName, tokenSymbol) {
+    ) ERC20(tokenName, tokenSymbol) {
         _pancakeRouter = IPancakeRouter02(pancakeRouter);
         _fexonTradeAlgorithm = IFexonTradeAlgorithm(fexonTradeAlgorithm);
         _coins = coins;
@@ -30,9 +30,11 @@ contract FexonCore is ERC20, Ownable {
 
     function buy() public payable {
         Portfolio memory portfolio = _buildPortfolio();
-        TradeData[] memory tradeData = _fexonTradeAlgorithm.getRatios(portfolio);
+        TradeData[] memory tradeData = _fexonTradeAlgorithm.getRatios(
+            portfolio
+        );
 
-        for(uint i = 0; i < tradeData.length ; i++) {
+        for (uint256 i = 0; i < tradeData.length; i++) {
             _buyCoin(tradeData[i]);
         }
 
@@ -44,8 +46,9 @@ contract FexonCore is ERC20, Ownable {
         require(amount <= b, "Insufficient balance");
         uint256 ratio = ((b * 100) / totalSupply()) / _coins.length;
 
-        for(uint i = 0; i < _coins.length ; i++) {
-            uint256 _amount = (IERC20(_coins[i]).balanceOf(address(this)) * ratio) / 100;
+        for (uint256 i = 0; i < _coins.length; i++) {
+            uint256 _amount = (IERC20(_coins[i]).balanceOf(address(this)) *
+                ratio) / 100;
             _sellCoin(_amount, _coins[i]);
         }
 
@@ -54,7 +57,7 @@ contract FexonCore is ERC20, Ownable {
 
     function viewPortfolio() public view returns (PortfolioEntry[] memory) {
         PortfolioEntry[] memory portfolio = new PortfolioEntry[](_coins.length);
-        for(uint i = 0; i < _coins.length ; i++) {
+        for (uint256 i = 0; i < _coins.length; i++) {
             IERC20 coin = IERC20(_coins[i]);
             portfolio[i] = PortfolioEntry(
                 address(coin),
@@ -68,52 +71,51 @@ contract FexonCore is ERC20, Ownable {
         _fexonTradeAlgorithm = IFexonTradeAlgorithm(algorithmAddress);
     }
 
+    function checkUpkeep(bytes calldata checkData)
+        public
+        returns (bool upkeepNeeded, bytes memory performData)
+    {}
+
+    function performUpkeep(bytes calldata performData) public {}
+
     function _buyCoin(TradeData memory data) private {
         address[] memory pool = new address[](2);
         pool[0] = _WBNB;
-        pool[1] = data.coin; 
+        pool[1] = data.coin;
 
-        _pancakeRouter
-            .swapExactETHForTokens{value: data.amount} (
-                0,
-                pool,
-                address(this),
-                block.timestamp
-            );
+        _pancakeRouter.swapExactETHForTokens{value: data.amount}(
+            0,
+            pool,
+            address(this),
+            block.timestamp
+        );
     }
 
-    function _sellCoin(
-        uint256 amount,
-        address coin
-    ) private {
+    function _sellCoin(uint256 amount, address coin) private {
         address[] memory pool = new address[](2);
         pool[0] = coin;
-        pool[1] = _WBNB; 
+        pool[1] = _WBNB;
 
         IERC20(coin).approve(address(_pancakeRouter), amount);
-        _pancakeRouter
-            .swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                amount,
-                0,
-                pool,
-                msg.sender,
-                block.timestamp
-            );
+        _pancakeRouter.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amount,
+            0,
+            pool,
+            msg.sender,
+            block.timestamp
+        );
     }
 
-    function _buildPortfolio() private view returns (Portfolio memory){
+    function _buildPortfolio() private view returns (Portfolio memory) {
         PortfolioEntry[] memory entries = new PortfolioEntry[](_coins.length);
-        for(uint256 i = 0; i < _coins.length; i++) {
+        for (uint256 i = 0; i < _coins.length; i++) {
             IERC20 coin = IERC20(_coins[i]);
             entries[i] = PortfolioEntry(
-                address(coin), 
+                address(coin),
                 coin.balanceOf(address(this))
             );
         }
-        Portfolio memory portfolio = Portfolio(
-            address(this).balance,
-            entries
-        );
+        Portfolio memory portfolio = Portfolio(address(this).balance, entries);
         return portfolio;
     }
 }
