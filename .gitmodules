@@ -4,3 +4,6 @@
 [submodule "dependencies/openzeppelin-contracts"]
 	path = dependencies/openzeppelin-contracts
 	url = git@github.com:OpenZeppelin/openzeppelin-contracts.git
+[submodule "dependencies/chainlink"]
+	path = dependencies/chainlink
+	url = org-25111032@github.com:smartcontractkit/chainlink.git
