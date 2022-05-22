@@ -13,7 +13,7 @@ import "../dependencies/chainlink/contracts/src/v0.8/interfaces/KeeperCompatible
 contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     IPancakeRouter02 private _pancakeRouter;
     IFexonTradeAlgorithm private _fexonTradeAlgorithm;
-    address[] _coins;
+    address[] private _coins;
     address private _WBNB = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd;
 
     constructor(
