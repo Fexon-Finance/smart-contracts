@@ -15,7 +15,8 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     IFexonTradeAlgorithm private _fexonTradeAlgorithm;
     address[] private _coins;
     address private _WBNB = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd;
-
+    address private _BUSD = 0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee;
+    
     constructor(
         address pancakeRouter,
         address fexonTradeAlgorithm,
@@ -23,22 +24,15 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
         string memory tokenName,
         string memory tokenSymbol
     ) ERC20(tokenName, tokenSymbol) {
+        require(coins[0] == _BUSD, "First coin must be BUSD.");
         _pancakeRouter = IPancakeRouter02(pancakeRouter);
         _fexonTradeAlgorithm = IFexonTradeAlgorithm(fexonTradeAlgorithm);
         _coins = coins;
     }
 
-    function buy() public payable {
-        Portfolio memory portfolio = _buildPortfolio();
-        TradeData[] memory tradeData = _fexonTradeAlgorithm.getRatios(
-            portfolio
-        );
-
-        for (uint256 i = 0; i < tradeData.length; i++) {
-            _buyCoin(tradeData[i]);
-        }
-
-        _mint(msg.sender, msg.value);
+    function buy(uint256 busdAmount) public {
+        IERC20(_BUSD).transferFrom(msg.sender, address(this), busdAmount);
+        _mint(msg.sender, busdAmount);
     }
 
     function sell(uint256 amount) public {
@@ -71,12 +65,13 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
         _fexonTradeAlgorithm = IFexonTradeAlgorithm(algorithmAddress);
     }
 
-    function checkUpkeep(bytes calldata checkData)
+     function checkUpkeep(bytes calldata checkData)
+        override
         public
         returns (bool upkeepNeeded, bytes memory performData)
     {}
 
-    function performUpkeep(bytes calldata performData) public {}
+    function performUpkeep(bytes calldata performData) override public {}
 
     function _buyCoin(TradeData memory data) private {
         address[] memory pool = new address[](2);
@@ -104,6 +99,10 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
             msg.sender,
             block.timestamp
         );
+    }
+
+    function _rebalance() private {
+        
     }
 
     function _buildPortfolio() private view returns (Portfolio memory) {
