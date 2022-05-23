@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/IFexonTradeAlgoritm.sol";
+import "./structures/Coin.sol";
 
 import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakeRouter02.sol";
 import "../dependencies/pancake-smart-contracts/projects/exchange-protocol/contracts/interfaces/IPancakeFactory.sol";
@@ -13,21 +14,23 @@ import "../dependencies/chainlink/contracts/src/v0.8/interfaces/KeeperCompatible
 contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     IPancakeRouter02 private _pancakeRouter;
     IFexonTradeAlgorithm private _fexonTradeAlgorithm;
-    address[] private _coins;
+    Coin[] private _coins;
     address private _WBNB = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd;
     address private _BUSD = 0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee;
     
     constructor(
         address pancakeRouter,
         address fexonTradeAlgorithm,
-        address[] memory coins,
+        Coin[] memory coins,
         string memory tokenName,
         string memory tokenSymbol
     ) ERC20(tokenName, tokenSymbol) {
-        require(coins[0] == _BUSD, "First coin must be BUSD.");
+        require(coins[0].coinAddress == _BUSD, "First coin must be BUSD.");
         _pancakeRouter = IPancakeRouter02(pancakeRouter);
         _fexonTradeAlgorithm = IFexonTradeAlgorithm(fexonTradeAlgorithm);
-        _coins = coins;
+        for(uint256 i = 0; i < coins.length; i++) {
+            _coins.push(Coin(coins[i].symbol, coins[i].coinAddress));    
+        }
     }
 
     function buy(uint256 busdAmount) public {
@@ -41,9 +44,9 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
         uint256 ratio = ((b * 100) / totalSupply()) / _coins.length;
 
         for (uint256 i = 0; i < _coins.length; i++) {
-            uint256 _amount = (IERC20(_coins[i]).balanceOf(address(this)) *
+            uint256 _amount = (IERC20(_coins[i].coinAddress).balanceOf(address(this)) *
                 ratio) / 100;
-            _sellCoin(_amount, _coins[i]);
+            _sellCoin(_amount, _coins[i].coinAddress);
         }
 
         _burn(msg.sender, amount);
@@ -52,9 +55,10 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     function viewPortfolio() public view returns (PortfolioEntry[] memory) {
         PortfolioEntry[] memory portfolio = new PortfolioEntry[](_coins.length);
         for (uint256 i = 0; i < _coins.length; i++) {
-            IERC20 coin = IERC20(_coins[i]);
+            IERC20 coin = IERC20(_coins[i].coinAddress);
             portfolio[i] = PortfolioEntry(
                 address(coin),
+                _coins[i].symbol,
                 coin.balanceOf(address(this))
             );
         }
@@ -108,9 +112,10 @@ contract FexonCore is ERC20, Ownable, KeeperCompatibleInterface {
     function _buildPortfolio() private view returns (Portfolio memory) {
         PortfolioEntry[] memory entries = new PortfolioEntry[](_coins.length);
         for (uint256 i = 0; i < _coins.length; i++) {
-            IERC20 coin = IERC20(_coins[i]);
+            IERC20 coin = IERC20(_coins[i].coinAddress);
             entries[i] = PortfolioEntry(
                 address(coin),
+                _coins[i].symbol,
                 coin.balanceOf(address(this))
             );
         }

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-struct PortfolioEntry {
-    address coin;
+struct Coin {
     string symbol;
-    uint256 amount;
+    address coinAddress;
 }
